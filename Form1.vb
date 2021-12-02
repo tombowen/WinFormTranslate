@@ -16,33 +16,73 @@ Public Class Form1
 
     End Sub
 
-    Public Async Sub RecognitionWithMicrophone()
-        System.Windows.Forms.Control.CheckForIllegalCrossThreadCalls = False
+    Public Async Sub OneShotRecognitionWithMicrophone()
+        'System.Windows.Forms.Control.CheckForIllegalCrossThreadCalls = False
         Dim config = SpeechConfig.FromSubscription("8c2a080e80a4489bbc8fc4fcbfa10e29", "eastus")
         Dim recognizer = New SpeechRecognizer(config)
 
         Using (recognizer)
             Dim result = Await recognizer.RecognizeOnceAsync.ConfigureAwait(False)
 
-            'TextBox2.Text = result.Text
-
             If result.Reason = ResultReason.RecognizedSpeech Then
-                TextBox1.Text = ""
-                'Dim threadParameters = New System.Threading.ThreadStart(AddressOf WriteTextSafe("This is safe."))
-                TextBox1.Text = result.Text
+                SetText(result.Text)
             End If
-
         End Using
 
     End Sub
 
-    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
-        Call RecognitionWithMicrophone()
+    Public Async Sub ContinuousRecognitionWithMicrophone()
+
+        Dim config = SpeechConfig.FromSubscription("8c2a080e80a4489bbc8fc4fcbfa10e29", "eastus")
+        Dim recognizer = New SpeechRecognizer(config)
+
+        Using (recognizer)
+            'Dim result = Await recognizer.StartContinuousRecognitionAsync.ConfigureAwait(False)
+
+            Dim result = Await recognizer.StartContinuousRecognitionAsync.ConfigureAwait(True)
+
+            If result.Reason = ResultReason.RecognizedSpeech Then
+                SetText2(result.Text)
+            End If
+        End Using
+
     End Sub
 
-    Private Sub WriteTextSafe()
+    Private Sub BtnOneShot_Click(sender As Object, e As EventArgs) Handles btnOneShot.Click
+        Call OneShotRecognitionWithMicrophone()
+    End Sub
+
+
+    Private Sub SetText(ByVal [text] As String)
+
+        If Me.InvokeRequired Then
+            Me.Invoke(Sub()
+                          TextBox1.Text = text
+                      End Sub)
+        Else
+            TextBox1.Text = text
+        End If
 
     End Sub
+
+    Private Sub SetText2(ByVal [text] As String)
+
+        If Me.InvokeRequired Then
+            Me.Invoke(Sub()
+                          TextBox2.Text += text
+                      End Sub)
+        Else
+            TextBox2.Text += text
+        End If
+
+    End Sub
+
+    Private Sub BtnContinuous_Click(sender As Object, e As EventArgs) Handles btnContinuous.Click
+
+        ContinuousRecognitionWithMicrophone()
+
+    End Sub
+
 
 End Class
 
